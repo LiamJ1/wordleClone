@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Guess the Word</title>
+    <link href="style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<div class="container">
+    <div class="content">
+        <table>
+            <tbody id="board">
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            </tbody>
+        </table>
+        <div class="input-container">
+            <input type="text" maxlength="5" minlength="5">
+            <button id="submit">Enter!</button>
+            <button id="restart">Restart</button> <!-- New Restart Button -->
+        </div>
+        <p id="game-over"></p>
+    </div>
+</div>
+</body>
+<script>
+    const board = document.getElementById('board');
+    const textBox = document.querySelector('input');
+    const submitButton = document.getElementById('submit');
+    const restartButton = document.getElementById('restart'); // New Restart Button
+    const gameOverMessage = document.getElementById('game-over')
+    const wordList = ["FLAME", "CRANE" , "BREED" , "REBUS" , "BANAL" , "GORGE" , "QUERY" , "ABBEY" , "PROXY" , "ALOFT" , "FJORD"];
+    let answer = randomWord();
+    let currentGuessNumber = 0;
+    let guessesMade = 0;
+    const maxGuesses = 5;
+
+    submitButton.addEventListener("click", submitGuess);
+
+    restartButton.addEventListener("click", restartGame); // Event listener for restart button
+
+    function submitGuess(e) {
+        let guess = textBox.value;
+        if (guess.length !== 5 || guessesMade >= maxGuesses) {
+            return;
+        }
+
+        writeGuess(guess);
+        guessesMade++;
+
+        if (guess.toUpperCase() === answer.toUpperCase()) {
+            gameOverMessage.textContent = 'You Won!!!';
+            submitButton.disabled = true;
+            textBox.disabled = true;
+            return;
+        }
+
+        // Check if maximum guesses reached
+        if (guessesMade === maxGuesses) {
+            gameOverMessage.textContent = 'Game Over!!! ' + 'The answer was ' + answer;
+            submitButton.disabled = true;
+            textBox.disabled = true;
+        }
+
+        // Clear the text input after submission
+        textBox.value = "";
+    }
+
+    function writeGuess(guess) {
+        let matchArray = buildMatchArray(guess);
+        let currentGuessRow = board.children[currentGuessNumber];
+        let columns = currentGuessRow.children;
+        for (let i = 0; i < matchArray.length; i++) {
+            let column = columns[i];
+            column.textContent = guess[i].toUpperCase();
+            if (matchArray[i] === 2) {
+                column.classList.add('correct');
+            } else if (matchArray[i] === 1) {
+                column.classList.add('in-word');
+            } else {
+                column.classList.add('incorrect');
+            }
+        }
+        currentGuessNumber++;
+    }
+
+    function buildMatchArray(guess) {
+        guess = guess.toUpperCase();
+        let answerAsArray = [];
+        let matchArray = [0, 0, 0, 0, 0];
+        let matchedIndices = []; // Keep track of matched indices to handle duplicate letters
+        for (let i = 0; i < answer.length; i++) {
+            let letter = answer[i].toUpperCase();
+            answerAsArray.push(letter);
+        }
+
+        for (let i = 0; i < guess.length; i++) {
+            let letter = guess[i];
+            if (letter === answer[i]) {
+                answerAsArray[i] = null;
+                matchArray[i] = 2;
+                matchedIndices.push(i);
+            }
+        }
+
+        for (let i = 0; i < guess.length; i++) {
+            let letter = guess[i];
+            if (matchedIndices.includes(i)) continue; // Skip already matched letters
+            let index = answerAsArray.indexOf(letter);
+            if (index !== -1) {
+                answerAsArray[index] = null;
+                matchArray[i] = 1;
+            }
+        }
+        return matchArray;
+    }
+
+    function randomWord(){
+        return wordList[Math.floor(Math.random() * wordList.length)];
+    }
+
+    function restartGame() {
+        // Reset all variables and elements
+        answer = randomWord();
+        currentGuessNumber = 0;
+        guessesMade = 0;
+        gameOverMessage.textContent = '';
+        const columns = document.querySelectorAll('#board td');
+        columns.forEach(column => {
+            column.textContent = '';
+            column.className = '';
+        });
+
+        textBox.disabled = false;
+        submitButton.disabled = false;
+    }
+
+</script>
+</html>
